@@ -1712,6 +1712,13 @@ export const frOverrides = {
         "Taille maximale d'un fichier local que Desktop chargera pour les aperçus et les pièces jointes image, en Mo. La valeur par défaut est 16. Les pièces jointes distantes non-image utilisent une limite distincte de 256 Mo. Une valeur très élevée charge le fichier entier en mémoire et peut figer ou planter l'application.",
       attachmentSizeUnit: 'Mo',
       attachmentSizeLabel: 'Taille maximale de chargement des aperçus / images en mégaoctets',
+      voiceTestTitle: 'Tester la voix',
+      voiceTestDesc: 'Écoutez un court échantillon avec la voix enregistrée ci-dessus, sans lancer de conversation.',
+      voiceTestButton: 'Tester la voix',
+      voiceTestPreparing: 'Préparation…',
+      voiceTestStop: 'Arrêter',
+      voiceTestFailed: "Impossible de lire l'échantillon de voix",
+      voiceTestSample: 'Bonjour ! Voici comment Hermes sonne avec vos réglages vocaux actuels.',
       showOptions: 'Afficher les options'
     },
     hudModifier: {

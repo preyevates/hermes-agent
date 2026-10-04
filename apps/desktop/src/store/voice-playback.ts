@@ -1,6 +1,6 @@
 import { atom } from 'nanostores'
 
-export type VoicePlaybackSource = 'read-aloud' | 'voice-conversation'
+export type VoicePlaybackSource = 'read-aloud' | 'voice-conversation' | 'voice-test'
 export type VoicePlaybackStatus = 'idle' | 'preparing' | 'speaking'
 
 export interface VoicePlaybackState {

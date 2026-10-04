@@ -1157,6 +1157,13 @@ export interface Translations {
       attachmentSizeLabel: string
       voiceShortcutHintTitle: string
       voiceShortcutHintDesc: string
+      voiceTestTitle: string
+      voiceTestDesc: string
+      voiceTestButton: string
+      voiceTestPreparing: string
+      voiceTestStop: string
+      voiceTestFailed: string
+      voiceTestSample: string
       showOptions: string
     }
     hudModifier: {

@@ -1397,6 +1397,13 @@ export const en: Translations = {
       voiceShortcutHintTitle: 'Voice recording shortcut',
       voiceShortcutHintDesc:
         'Set the voice recording shortcut in Settings → Keyboard Shortcuts ("Start / stop voice conversation"). The voice.record_key config value only applies to the CLI and TUI.',
+      voiceTestTitle: 'Test voice',
+      voiceTestDesc: 'Hear a short sample in the voice saved above, without starting a conversation.',
+      voiceTestButton: 'Test voice',
+      voiceTestPreparing: 'Preparing…',
+      voiceTestStop: 'Stop',
+      voiceTestFailed: 'Could not play the voice sample',
+      voiceTestSample: 'Hello! This is how Hermes sounds with your current voice settings.',
       showOptions: 'Show options'
     },
     hudModifier: {

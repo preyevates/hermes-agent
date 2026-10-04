@@ -6,6 +6,7 @@ import { MemoryRouter } from 'react-router'
 import { afterEach, beforeAll, beforeEach, describe, expect, it, vi } from 'vitest'
 
 import type * as ConfigApi from '@/api/config'
+import { en } from '@/i18n/en'
 import { $settingsRequestProfile } from '@/store/settings-scope'
 
 import type { ConfigSettings as ConfigSettingsType } from './config-settings'
@@ -32,6 +33,15 @@ vi.mock('@/hermes', async () => ({
   saveHermesConfig: (config: unknown, profile?: string) => saveHermesConfig(config, profile),
   getElevenLabsVoices: () => getElevenLabsVoices(),
   setApiRequestProfile: () => {}
+}))
+
+// "Test voice" speaks through the real playback ladder (WS, Audio); this page
+// only decides when the row shows and when it may be pressed.
+const playSpeechText = vi.fn()
+
+vi.mock('@/lib/voice-playback', () => ({
+  playSpeechText: (text: string, options: unknown) => playSpeechText(text, options),
+  stopVoicePlayback: vi.fn()
 }))
 
 vi.mock('../hooks/use-on-profile-switch', () => ({
@@ -80,14 +90,14 @@ afterEach(() => {
   vi.clearAllMocks()
 })
 
-function renderConfigSettings(activeSectionId = 'safety') {
+function renderConfigSettings(activeSectionId = 'safety', subpage?: string) {
   const client = new QueryClient({ defaultOptions: { queries: { retry: false } } })
   const importInputRef = createRef<HTMLInputElement>()
 
   render(
     <MemoryRouter>
       <QueryClientProvider client={client}>
-        <ConfigSettings activeSectionId={activeSectionId} importInputRef={importInputRef} />
+        <ConfigSettings activeSectionId={activeSectionId} importInputRef={importInputRef} subpage={subpage} />
       </QueryClientProvider>
     </MemoryRouter>
   )
@@ -147,6 +157,68 @@ describe('ConfigSettings autosave', () => {
       await vi.advanceTimersByTimeAsync(700)
 
       await vi.waitFor(() => expect(saveHermesConfig).toHaveBeenCalledWith({ checkpoints: { enabled: true } }, 'nash'))
+    } finally {
+      vi.useRealTimers()
+    }
+  })
+})
+
+describe('ConfigSettings Test voice', () => {
+  const testVoice = en.settings.config.voiceTestButton
+
+  beforeEach(() => {
+    playSpeechText.mockResolvedValue(true)
+    getHermesConfigRecord.mockResolvedValue({
+      checkpoints: { enabled: false },
+      stt: { enabled: false },
+      tts: { provider: 'edge' },
+      voice: { auto_tts: false }
+    })
+  })
+
+  it.each([
+    ['voice', 'speech'],
+    ['voice', undefined]
+  ] as const)('shows on the %s page, subpage %s', async (section, subpage) => {
+    renderConfigSettings(section, subpage)
+
+    expect(await screen.findByRole('button', { name: testVoice })).toBeTruthy()
+  })
+
+  it.each([
+    ['voice', 'transcription'],
+    ['safety', undefined]
+  ] as const)('stays off the %s page, subpage %s', async (section, subpage) => {
+    renderConfigSettings(section, subpage)
+
+    // A field of the page has rendered, so the absence below is not just "still loading".
+    await screen.findAllByRole('switch')
+    expect(screen.queryByRole('button', { name: testVoice })).toBeNull()
+  })
+
+  it('waits for the autosave to land a voice change, then speaks for the scoped profile', async () => {
+    scopeProfileMock.set('nash')
+    vi.useFakeTimers({ shouldAdvanceTime: true })
+
+    try {
+      renderConfigSettings('voice', 'speech')
+
+      const toggle = await screen.findByRole('switch')
+      const button = await screen.findByRole('button', { name: testVoice })
+
+      expect(button.hasAttribute('disabled')).toBe(false)
+
+      toggle.click()
+      await vi.waitFor(() => expect(button.hasAttribute('disabled')).toBe(true))
+      expect(saveHermesConfig).not.toHaveBeenCalled()
+
+      await vi.advanceTimersByTimeAsync(700)
+      await vi.waitFor(() => expect(saveHermesConfig).toHaveBeenCalledTimes(1))
+      await vi.waitFor(() => expect(button.hasAttribute('disabled')).toBe(false))
+
+      button.click()
+      await vi.waitFor(() => expect(playSpeechText).toHaveBeenCalledTimes(1))
+      expect(playSpeechText.mock.calls[0][1]).toEqual({ profile: 'nash', source: 'voice-test' })
     } finally {
       vi.useRealTimers()
     }

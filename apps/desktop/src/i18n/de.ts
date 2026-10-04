@@ -1705,6 +1705,13 @@ export const deOverrides = {
         'Wie groß eine lokale Datei sein darf, die Desktop für Vorschauen und Bildanhänge lädt, in MB. Standard ist 16. Remote-Anhänge ohne Bild verwenden ein eigenes Limit von 256 MB. Ein sehr hoher Wert lädt die gesamte Datei in den Speicher, was die App einfrieren oder abstürzen lassen kann.',
       attachmentSizeUnit: 'MB',
       attachmentSizeLabel: 'Maximale Vorschau-/Bildladegröße in Megabyte',
+      voiceTestTitle: 'Stimme testen',
+      voiceTestDesc: 'Eine kurze Hörprobe mit der oben gespeicherten Stimme anhören, ohne ein Gespräch zu beginnen.',
+      voiceTestButton: 'Stimme testen',
+      voiceTestPreparing: 'Wird vorbereitet…',
+      voiceTestStop: 'Stopp',
+      voiceTestFailed: 'Die Stimmprobe konnte nicht abgespielt werden',
+      voiceTestSample: 'Hallo! So klingt Hermes mit Ihren aktuellen Spracheinstellungen.',
       showOptions: 'Optionen anzeigen'
     },
     hudModifier: {

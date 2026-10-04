@@ -57,6 +57,7 @@ import { QuickEntrySettings } from './quick-entry-settings'
 import { SETTING_IDS, settingElementId } from './settings-manifest'
 import { SharedMetricsSettings } from './shared-metrics-settings'
 import { useSettingDeepLink } from './use-setting-deep-link'
+import { VoiceTestRow } from './voice-test-row'
 
 export function ConfigSettings({
   activeSectionId,
@@ -148,6 +149,9 @@ function ConfigSettingsInner({
   const saveVersionRef = useRef(0)
   const savedDiscoverySignatureRef = useRef<string | undefined>(undefined)
   const [saveVersion, setSaveVersion] = useState(0)
+  // An edit the debounced autosave has not landed yet. "Test voice" speaks what
+  // the backend has saved, so it waits for this to clear.
+  const [unsaved, setUnsaved] = useState(false)
 
   // Seed the local draft once, the first time the shared record lands.
   // Background refetches thereafter must not clobber in-progress edits.
@@ -183,6 +187,7 @@ function ConfigSettingsInner({
     setConfig(null)
     saveVersionRef.current = 0
     setSaveVersion(0)
+    setUnsaved(false)
     saveQueueRef.current = Promise.resolve()
   })
 
@@ -246,6 +251,8 @@ function ConfigSettingsInner({
           recordSettingsSaved(patch, schema ?? {}, typeof savedScope === 'string' ? savedScope : savedScope?.profile)
 
           if (saveVersionRef.current === v) {
+            setUnsaved(false)
+
             // The repo-discovery scan reads the ACTIVE profile's workspace
             // policy; skip it when this page is editing another profile.
             if (scopeProfile == null) {
@@ -261,6 +268,7 @@ function ConfigSettingsInner({
           }
         } catch (err) {
           if (saveVersionRef.current === v) {
+            setUnsaved(false)
             notifyError(err, c.autosaveFailed)
           }
         }
@@ -274,6 +282,7 @@ function ConfigSettingsInner({
   const applyConfig = (next: HermesConfigRecord) => {
     saveVersionRef.current += 1
     setConfig(next)
+    setUnsaved(true)
     setSaveVersion(saveVersionRef.current)
   }
 
@@ -314,6 +323,7 @@ function ConfigSettingsInner({
   const showDesktopSettings = activeSectionId === 'advanced' && (subpage === undefined || subpage === 'desktop')
   const showAttachments = activeSectionId === 'chat' && (subpage === undefined || subpage === 'attachments')
   const showSharedMetrics = activeSectionId === 'safety' && subpage === 'privacy'
+  const showVoiceTest = activeSectionId === 'voice' && (subpage === undefined || subpage === 'speech')
 
   // Deep-link target from the command palette (?field=<key>): scroll the row
   // into view and flash it, then drop the param so it doesn't re-fire.
@@ -446,7 +456,7 @@ function ConfigSettingsInner({
     visibleFields.length === 0 &&
     (subpage === undefined
       ? activeSectionId !== 'chat'
-      : !showModelSettings && !showDesktopSettings && !showAttachments && !showSharedMetrics)
+      : !showModelSettings && !showDesktopSettings && !showAttachments && !showSharedMetrics && !showVoiceTest)
 
   return renderPage(
     <>
@@ -497,6 +507,7 @@ function ConfigSettingsInner({
       {activeSectionId === 'voice' ? (
         <ListRow description={c.voiceShortcutHintDesc} title={c.voiceShortcutHintTitle} />
       ) : null}
+      {showVoiceTest ? <VoiceTestRow disabled={unsaved} profile={scopeProfile} /> : null}
       {showEmptyState ? (
         <EmptyState description={c.emptyDesc} title={c.emptyTitle} />
       ) : visibleFields.length === 0 ? null : (
